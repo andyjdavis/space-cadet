@@ -46,13 +46,3 @@ class MySprite(pygame.sprite.Sprite):
             if bottom == None or bottom[1] < tile[1]:
                 bottom = tile
         return bottom
-    
-    def revert(self, stopy):
-        self.pos = list(self.pos_previous)
-        
-        if stopy:
-            self.vel[1] = 0
-        else:
-            self.vel = list(self.vel_previous)
-        
-        self.reverted = True

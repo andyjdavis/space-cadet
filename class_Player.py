@@ -14,7 +14,11 @@ class Player(MySprite):
         self.vel = [0,0]
         
         # did we revert the last move?
-        self.reverted = False
+        self.reverted_x = False
+        self.reverted_y = False
+        
+        self.vel_previous = list(self.vel)
+        self.pos_previous = list(self.pos)
         
         self.left_down = False
         self.right_down = False
@@ -37,12 +41,20 @@ class Player(MySprite):
                 return True
         return False
             
-    
+    def revert(self):
+        self.pos = list(self.pos_previous)
+        self.vel = list(self.vel_previous)
+            
+
     def update(self, dt):
         
-        if not self.reverted:
-            self.vel_previous = list(self.vel)
-            self.pos_previous = list(self.pos)
+        if not self.reverted_x:
+            self.vel_previous[0] = self.vel[0]
+            self.pos_previous[0] = self.pos[0]
+        
+        if not self.reverted_y:
+            self.vel_previous[1] = self.vel[1]
+            self.pos_previous[1] = self.pos[1]
         
         if not (self.right_down and self.left_down):
             sign = 1
@@ -67,13 +79,21 @@ class Player(MySprite):
         deltax = self.vel[0] * dt * 0.5
         deltay = self.vel[1] * dt * 0.5
         
+        self.reverted_x = self.reverted_y = False
+        
         self.pos[0] = update_pos(self.pos[0], deltax)
-        self.pos[1] = update_pos(self.pos[1], deltay)
-        
-        self.reverted = False
-        
         if self.g.world.is_sprite_colliding_with_scenery(self):
-            self.revert(True)
+            self.reverted_x = True
+
+        self.revert()
+        self.pos[1] = update_pos(self.pos[1], deltay)        
+        if self.g.world.is_sprite_colliding_with_scenery(self):
+            self.reverted_y = True
+            self.revert()
+            self.vel[1] = 0
+        
+        if not self.reverted_x:
+            self.pos[0] = update_pos(self.pos[0], deltax)
         
         draw_pos = (self.pos[0] - self.g.camera_x, self.pos[1])
         self.rect = pygame.Rect(draw_pos, (self.width, self.height))
