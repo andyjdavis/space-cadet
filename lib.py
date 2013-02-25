@@ -1,14 +1,14 @@
 import math, os, pygame
 from pygame.locals import *
 
-def update_pos(pos, delta):
+def calc_new_pos(pos, delta):
     delta = int(round(delta, 0))
     return pos + delta
 
-def sprite_on_tile(sprite, tile_pos):
-    sprite.sitting_on = tile_pos
-    sprite.vel[1] = 0
-    sprite.pos[1] = tile_pos.pos[1] - g.settings.block_size/2 - sprite.size[1]/2
+#def sprite_on_tile(sprite, tile_pos):
+#    sprite.sitting_on = tile_pos
+#    sprite.__vel[1] = 0
+#    sprite.__pos[1] = tile_pos.pos[1] - g.settings.block_size/2 - sprite.size[1]/2
 
 def load_image(name, colorkey=-1, perpixelalpha=False):
     fullname = os.path.join('resources', name)

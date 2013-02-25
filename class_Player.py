@@ -2,23 +2,14 @@ import pygame
 import math
 
 from lib import *
-from class_MySprite import *
+from class_SmartSprite import *
 
-class Player(MySprite):
+class Player(SmartSprite):
     def __init__(self, pos, settings, g):
-        MySprite.__init__(self, pos, settings, g)
+        SmartSprite.__init__(self, pos, [0, 0], settings, g)
         
         self.width = 75
         self.height = 96
-        
-        self.vel = [0,0]
-        
-        # did we revert the last move?
-        self.reverted_x = False
-        self.reverted_y = False
-        
-        self.vel_previous = list(self.vel)
-        self.pos_previous = list(self.pos)
         
         self.left_down = False
         self.right_down = False
@@ -30,31 +21,22 @@ class Player(MySprite):
                 formatted_i = '0' + str(i)
             image, image_rect = load_image('character/walk/walk00' + formatted_i + '.png')
             self.images.append(image)
-    
+            
     def in_the_air(self):
+        pos = self.get_pos()
+        
         # check left side
-        tile_below_player = self.g.world.pos_to_tile((self.pos[0], self.pos[1] + self.height + 1))
+        tile_below_player = self.g.world.pos_to_tile((pos[0], pos[1] + self.height + 1))
         if self.g.world.is_tile_clear(tile_below_player):
             # now check right
-            tile_below_player = self.g.world.pos_to_tile((self.pos[0] + self.width, self.pos[1] + self.height + 1))
+            tile_below_player = self.g.world.pos_to_tile((pos[0] + self.width, pos[1] + self.height + 1))
             if self.g.world.is_tile_clear(tile_below_player):
                 return True
         return False
-            
-    def revert(self):
-        self.pos = list(self.pos_previous)
-        self.vel = list(self.vel_previous)
-            
 
     def update(self, dt):
-        
-        if not self.reverted_x:
-            self.vel_previous[0] = self.vel[0]
-            self.pos_previous[0] = self.pos[0]
-        
-        if not self.reverted_y:
-            self.vel_previous[1] = self.vel[1]
-            self.pos_previous[1] = self.pos[1]
+    
+        self._future_pos = list(self._pos)
         
         if not (self.right_down and self.left_down):
             sign = 1
@@ -62,40 +44,58 @@ class Player(MySprite):
                 sign = -1
             
             if (self.right_down or self.left_down):
-                self.vel[0] = self.settings.player_move_acc * sign
+                self._vel[0] = self.settings.player_move_acc * sign
         
         # apply friction
         if not (self.right_down or self.left_down):
-            if abs(self.vel[0]) < 1:
-                self.vel[0] = 0
+            if abs(self._vel[0]) < 1:
+                self._vel[0] = 0
             else:
-                self.vel[0] *= self.settings.friction
+                self._vel[0] *= self.settings.friction
         
         # If they're in the air, apply gravity
-        gravity_vel_delta = (self.settings.gravity * dt)
         if self.in_the_air():
-            self.vel[1] += gravity_vel_delta
+            gravity_vel_delta = (self.settings.gravity * dt)
+            self._vel[1] += gravity_vel_delta
         
-        deltax = self.vel[0] * dt * 0.5
-        deltay = self.vel[1] * dt * 0.5
+        deltax = self._vel[0] * dt * 0.5
+        deltay = self._vel[1] * dt * 0.5
         
-        self.reverted_x = self.reverted_y = False
+        future_x = calc_new_pos(self._future_pos[0], deltax)
+        future_y = calc_new_pos(self._future_pos[1], deltay)
         
-        self.pos[0] = update_pos(self.pos[0], deltax)
+        x_collide = y_collide = False
+        
+        self._future_pos[0] = future_x
         if self.g.world.is_sprite_colliding_with_scenery(self):
-            self.reverted_x = True
+            # stick with the old value
+            x_collide = True
+        
+        # reset the x value so the y value can be tested independently
+        self._future_pos[0] = self._pos[0]
+        
+        self._future_pos[1] = future_y
+        if self.g.world.is_sprite_colliding_with_scenery(self):
+            y_collide = True
+            self._vel[1] = 0
 
-        self.revert()
-        self.pos[1] = update_pos(self.pos[1], deltay)        
-        if self.g.world.is_sprite_colliding_with_scenery(self):
-            self.reverted_y = True
-            self.revert()
-            self.vel[1] = 0
+        # test x and y together
+        #self._future_pos[0] = future_x
         
-        if not self.reverted_x:
-            self.pos[0] = update_pos(self.pos[0], deltax)
+        if x_collide:
+            self._future_pos[0] = self._pos[0]
+        else:
+            self._future_pos[0] = future_x
         
-        draw_pos = (self.pos[0] - self.g.camera_x, self.pos[1])
+        if y_collide:
+            self._future_pos[1] = self._pos[1]
+        else:
+            self._future_pos[1] = future_y
+        
+        self.confirm_future()
+        
+        pos = self.get_pos()
+        draw_pos = (pos[0] - self.g.camera_x, pos[1])
         self.rect = pygame.Rect(draw_pos, (self.width, self.height))
         
         if self.left_down or self.right_down:
@@ -121,5 +121,5 @@ class Player(MySprite):
     
     def jump(self):
         if not self.in_the_air():
-            self.vel[1] = -self.settings.player_jump;
+            self._vel[1] = -self.settings.player_jump;
 

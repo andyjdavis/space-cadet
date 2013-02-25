@@ -3,10 +3,11 @@ import pygame
 from lib import *
 
 class MySprite(pygame.sprite.Sprite):
-    def __init__(self, pos, settings, g):
+    def __init__(self, pos, vel, settings, g):
         pygame.sprite.Sprite.__init__(self)
         
-        self.pos = pos
+        self._pos = pos
+        self._vel = vel
         self.settings = settings
         self.g = g
         
@@ -23,9 +24,13 @@ class MySprite(pygame.sprite.Sprite):
         else:
             self.current_image_index = 0
     
+    def get_pos(self):
+        return self._pos
+    
     def get_tiles(self):
-        top_left = self.g.world.pos_to_tile(self.pos)
-        bottom_right = self.g.world.pos_to_tile((self.pos[0]+self.width, self.pos[1]+self.height))
+        pos = self.get_pos()
+        top_left = self.g.world.pos_to_tile(pos)
+        bottom_right = self.g.world.pos_to_tile( (pos[0]+self.width, pos[1]+self.height) )
         
         tiles = []
         

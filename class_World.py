@@ -6,9 +6,20 @@ from class_Goal import *
 
 class World():
     def __init__(self, settings, g):
+        self.settings = settings
+        self.g = g
+        
+        self.block_image, block_image_rect = load_image("ground.png", None)
+        #self.bad_block_image, block_image_rect = load_image("spikes.png", None, True)
+        
+        self.empty_tile_image = pygame.Surface((settings.block_width,settings.block_width)).convert()
+        # light sky blue
+        self.empty_tile_image.fill((135, 206, 250))
+        
         self.monsters = pygame.sprite.RenderPlain()
+        self.goals = pygame.sprite.RenderPlain()
 
-        image, image_rect = load_image('maps/map2.png', None)
+        image, image_rect = load_image('maps/map' + str(self.g.level) + '.png', None)
         
         self.map = [x[:] for x in [[0] * image_rect.width] * image_rect.height]
 
@@ -16,35 +27,26 @@ class World():
             for col in range(image_rect.width):
                 pixel_color = image.get_at((col,row))
                 if pixel_color[0] == 0 and pixel_color[1] == 0 and pixel_color[2] == 0:
-                    # ground
+                    # black = ground
                     self.map[row][col] = 1
                 if pixel_color[0] == 0 and pixel_color[1] == 255 and pixel_color[2] == 0:
-                    # monster
+                    # green = monster
                     pos = [col * settings.block_width, row * settings.block_width]
-                    monster = Monster(pos, settings, g)
-                    self.monsters.add(monster)
+                    self.monsters.add(Monster(pos, settings, g))
                 if pixel_color[0] == 255 and pixel_color[1] == 255 and pixel_color[2] == 0:
-                    # goal
+                    # yellow = goal
                     pos = [col * settings.block_width, row * settings.block_width]
-                    self.goal = Goal(pos, settings, g)
-
+                    self.goals.add(Goal(pos, settings, g))
+        
         self.width = image_rect.width
         self.height = len(self.map)
         
-        self.settings = settings
-        self.g = g
-        
-        self.block_image, block_image_rect = load_image("ground.png", None)
-        
-        #blocks_image, blocks_image_rect = load_image("ground.png", None)
-        #self.block_image = blocks_image.subsurface((240, 1), (270, 31))
-        
-        #self.block_image = pygame.Surface((settings.block_width,settings.block_width)).convert()
-        #self.block_image.fill((240, 119, 70))
-        
-        self.empty_tile_image = pygame.Surface((settings.block_width,settings.block_width)).convert()
-        # light sky blue
-        self.empty_tile_image.fill((135, 206, 250))
+        #check that all bottom row tiles are either terrain or lava/spikes or whatever
+        #for tile_x in range(len(self.map)):
+        #    print tile_x
+        #    if self.is_tile_clear((tile_x, self.height - 1)):
+        #        print 'found empty'
+        #        self.map[self.height - 1][tile_x] = 2
 
     def animation_update(self):
         #for monster in self.monsters:
@@ -53,7 +55,7 @@ class World():
     
     def update(self, dt):
         self.monsters.update(dt)
-        self.goal.update(dt)
+        self.goals.update(dt)
     
     def pos_to_tile(self, pos):
         x = pos[0]/self.settings.block_width
@@ -97,9 +99,15 @@ class World():
         
         for x in range(self.width):
             for y in range(self.height):
-                if self.get_tile(x, y) != 0:
+                tile = self.get_tile(x, y)
+                if tile == 1:
                     self.image.blit(
                         self.block_image,
+                        (x * self.settings.block_width - self.g.camera_x, y * self.settings.block_width)
+                    )
+                elif tile == 2:
+                    self.image.blit(
+                        self.bad_block_image,
                         (x * self.settings.block_width - self.g.camera_x, y * self.settings.block_width)
                     )
                 else:
@@ -110,5 +118,5 @@ class World():
         
         screen.blit(self.image, (0,0))
         self.monsters.draw(screen)
-        self.goal.draw(screen)
+        self.goals.draw(screen)
         
