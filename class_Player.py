@@ -95,7 +95,7 @@ class Player(SmartSprite):
         self.confirm_future()
         
         pos = self.get_pos()
-        draw_pos = (pos[0] - self.g.camera_x, pos[1])
+        draw_pos = (pos[0] - self.g.camera_x, pos[1] - self.g.camera_y)
         self.rect = pygame.Rect(draw_pos, (self.width, self.height))
         
         if self.left_down or self.right_down:

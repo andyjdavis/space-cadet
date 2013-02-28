@@ -29,15 +29,15 @@ class MySprite(pygame.sprite.Sprite):
     
     def get_tiles(self):
         pos = self.get_pos()
-        top_left = self.g.world.pos_to_tile(pos)
-        bottom_right = self.g.world.pos_to_tile( (pos[0]+self.width, pos[1]+self.height) )
+        top_left_tile = self.g.world.pos_to_tile(pos)
+        bottom_right_tile = self.g.world.pos_to_tile( (pos[0]+self.width, pos[1]+self.height) )
         
         tiles = []
         
-        y = top_left[1]
-        while y <= bottom_right[1]:
-            x = top_left[0]
-            while x <= bottom_right[0]:
+        y = top_left_tile[1]
+        while y <= bottom_right_tile[1]:
+            x = top_left_tile[0]
+            while x <= bottom_right_tile[0]:
                 tiles.append((x,y))
                 x += 1
             y += 1
@@ -51,3 +51,15 @@ class MySprite(pygame.sprite.Sprite):
             if bottom == None or bottom[1] < tile[1]:
                 bottom = tile
         return bottom
+    
+    def get_tile_ahead(self, pixels_ahead = 1):
+        future_x = None
+        if self._vel < 0:
+            future_x = self._pos[0] - pixels_ahead
+        if self._vel > 0:
+            future_x = self._pos[0] + self.width + pixels_ahead
+        return self.g.world.pos_to_tile((future_x, self._pos[1] + self.height))
+    
+    def get_tile_ahead_and_below(self, pixels_ahead):
+        tile = self.get_tile_ahead(pixels_ahead)
+        return (tile[0], tile[1] + 1)

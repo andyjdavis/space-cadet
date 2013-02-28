@@ -14,7 +14,7 @@ class World():
         
         self.empty_tile_image = pygame.Surface((settings.block_width,settings.block_width)).convert()
         # light sky blue
-        self.empty_tile_image.fill((135, 206, 250))
+        self.empty_tile_image.fill(self.settings.background_color)
         
         self.monsters = pygame.sprite.RenderPlain()
         self.goals = pygame.sprite.RenderPlain()
@@ -41,6 +41,8 @@ class World():
         self.width = image_rect.width
         self.height = len(self.map)
         
+        self.image = None
+        
         #check that all bottom row tiles are either terrain or lava/spikes or whatever
         #for tile_x in range(len(self.map)):
         #    print tile_x
@@ -58,8 +60,9 @@ class World():
         self.goals.update(dt)
     
     def pos_to_tile(self, pos):
-        x = pos[0]/self.settings.block_width
-        y = pos[1]/self.settings.block_width
+        x = int(pos[0]/self.settings.block_width)
+        y = int(pos[1]/self.settings.block_width)
+
         return (x, y)
     
     # returns top left of the tile
@@ -95,25 +98,32 @@ class World():
             self.clear_tile(tile)
     
     def draw(self, screen):
-        self.image = pygame.Surface(screen.get_size()).convert()
+        if not self.image:
+            self.image = pygame.Surface(screen.get_size()).convert()
         
-        for x in range(self.width):
-            for y in range(self.height):
+        x_start_tile = self.pos_to_tile((self.g.camera_x, self.g.camera_y))
+        x_end_tile = self.pos_to_tile((self.g.camera_x + self.settings.width, self.g.camera_y))
+        
+        y_start_tile = self.pos_to_tile((self.g.camera_x, self.g.camera_y))
+        y_end_tile = self.pos_to_tile((self.g.camera_x, self.g.camera_y + self.settings.height))
+        
+        for x in range(x_start_tile[0], x_end_tile[0]):
+            for y in range(y_start_tile[1], y_end_tile[1]):
                 tile = self.get_tile(x, y)
                 if tile == 1:
                     self.image.blit(
                         self.block_image,
-                        (x * self.settings.block_width - self.g.camera_x, y * self.settings.block_width)
+                        (x * self.settings.block_width - self.g.camera_x, y * self.settings.block_width - self.g.camera_y)
                     )
                 elif tile == 2:
                     self.image.blit(
                         self.bad_block_image,
-                        (x * self.settings.block_width - self.g.camera_x, y * self.settings.block_width)
+                        (x * self.settings.block_width - self.g.camera_x, y * self.settings.block_width - self.g.camera_y)
                     )
                 else:
                     self.image.blit(
                         self.empty_tile_image,
-                        (x * self.settings.block_width - self.g.camera_x, y * self.settings.block_width)
+                        (x * self.settings.block_width - self.g.camera_x, y * self.settings.block_width - self.g.camera_y)
                     )
         
         screen.blit(self.image, (0,0))

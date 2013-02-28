@@ -20,12 +20,13 @@ class Settings:
         self.player_jump = 1200
         self.gravity = 2200
         self.friction = 0.8
-        self.camera_speed = 5
+        self.camera_speed = 10
+        self.background_color = (135, 206, 250)
         
         self.splash_size = (600, 400)
         self.text_antialias = 1
-        self.text_color = (200, 200, 200)
-        self.text_bg_color = (0, 0, 0)
+        self.text_color = (0, 0, 0)
+        #self.text_bg_color = (0, 0, 0)
 settings = Settings()
 
 class Globals:
@@ -34,11 +35,14 @@ class Globals:
         self.world = None
         self.player = None
         self.camera_x = 0
+        self.camera_y = 0
         
         self.state_playing = True
         self.state_end_game = False
         
         self.splash_surface = None
+        
+        self.mushroom_time = 1
 g = Globals()
 
 pygame.init()
@@ -47,8 +51,13 @@ pygame.display.set_caption('My Game')
 #pygame.mouse.set_visible(0)
 
 sprite_group = pygame.sprite.RenderPlain()
+g.score_font = pygame.font.SysFont("arial", 18)
 
 def load_world():
+    g.mushroom_time = 1
+    g.camera_x = 0
+    g.camera_y = 0
+    
     if g.level > 10:
         # all levels complete
         g.state_playing = False
@@ -98,7 +107,52 @@ def display_end_game_splash(screen):
     
     splash_dest_rect = pygame.Rect((settings.width/2) - (settings.splash_size[0]/2), (settings.height/2) - (settings.splash_size[1]/2), settings.splash_size[0], settings.splash_size[1])
     screen.blit(g.splash_surface, splash_dest_rect)
+
+def draw_score(screen):
+    message = str(len(g.world.goals)) + " mushrooms left"
+    text = g.score_font.render(message, settings.text_antialias, settings.text_color, settings.background_color)
+    screen.blit(text, (settings.width - 200, 80))
+
+def draw_fps(screen, dt):
+    pass
+    #if dt > 0:
+    #    message = str(1/dt) + " FPS"
+    #    text = g.score_font.render(message, settings.text_antialias, settings.text_color, settings.background_color)
+    #    screen.blit(text, (settings.width - 200, 160))
+
+def update_camera_offsets():
+    multiplier = g.player.rect[0]/float(settings.width)
+    if g.player.rect[0] > settings.width * (1/3):
+        delta = multiplier * settings.camera_speed
+        if delta >= 1:
+            g.camera_x += delta
+            end_world = g.world.width * settings.block_width - settings.width
+            if g.camera_x > end_world:
+                g.camera_x = end_world
+        
+    elif g.player.rect[0] < settings.width/4:
+        delta = (1.0 - multiplier) * settings.camera_speed
+        if delta >= 1:
+            g.camera_x -= delta
+            if g.camera_x < 0:
+                g.camera_x = 0
     
+    multiplier = g.player.rect[1]/float(settings.height)
+    if g.player.rect[1] > settings.height * (2/3):
+        delta = multiplier * settings.camera_speed
+        if delta >= 1:
+            g.camera_y += delta
+            end_world = g.world.height * settings.block_width - settings.height
+            if g.camera_y > end_world:
+                g.camera_y = end_world
+    
+    elif g.player.rect[1] < settings.height/3:
+        delta = (1.0 - multiplier) * settings.camera_speed
+        if delta >= 1:
+            g.camera_y -= delta
+            if g.camera_y < 0:
+                g.camera_y = 0
+
 def main():
     
     load_world()
@@ -133,10 +187,22 @@ def main():
             elif event.type == USEREVENT + 1:
                 if g.state_playing:
                     g.world.animation_update()
+                    
+                    if g.mushroom_time > 1:
+                        mushroom_time = 1
+                    elif g.mushroom_time < 1:
+                        # will take 5 seconds to get back to 1
+                        g.mushroom_time += 0.006666666
         
         if g.state_end_game:
             display_end_game_splash(screen)
         if g.state_playing:
+            #print dt
+            #print g.mushroom_time
+            if g.mushroom_time < 1:
+                dt *= g.mushroom_time
+            #print dt
+            #print
             g.world.update(dt)
             g.player.update(dt)
             
@@ -150,28 +216,23 @@ def main():
             # Did the player get a goal?
             hits = pygame.sprite.spritecollide(g.player, g.world.goals, False)
             for goal in hits:
-                g.world.goals.remove(goal)        
+                g.world.goals.remove(goal)
                 if len(g.world.goals) <= 0:
                     g.level += 1
                     reset_level = True
+                else:
+                    g.mushroom_time = 0.0
 
             if reset_level:
                 load_world()
-            else:        
+            else:
                 screen.blit(bg, (0, 0))
                 g.world.draw(screen)
                 g.player.draw(screen)
+                draw_score(screen)
+                draw_fps(screen, dt)
                 
-                if g.player.rect[0] > settings.width/4:
-                    g.camera_x += settings.camera_speed
-                elif g.player.rect[0] < settings.width/5:
-                    g.camera_x -= settings.camera_speed
-                    if g.camera_x < 0:
-                        # don't go past the left hand of the level
-                        g.camera_x = 0
-                    elif g.camera_x > g.world.width * settings.block_width - settings.width:
-                        # don't go past the right hand of the level
-                        g.camera_x = g.world.width * settings.block_width - settings.width
+                update_camera_offsets()
         
         pygame.display.flip()
                         
