@@ -33,8 +33,9 @@ def load_sound(name):
     class NoneSound:
         def play(self): pass
     if not pygame.mixer or not pygame.mixer.get_init():
+        print 'pygame mixer not initialized'
         return NoneSound()
-    fullname = os.path.join(settings.resourcepath, name)
+    fullname = os.path.join('resources', name)
     try:
         sound = pygame.mixer.Sound(fullname)
     except pygame.error, message:

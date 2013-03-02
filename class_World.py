@@ -19,7 +19,7 @@ class World():
         self.monsters = pygame.sprite.RenderPlain()
         self.goals = pygame.sprite.RenderPlain()
 
-        image, image_rect = load_image('maps/map' + str(self.g.level) + '.png', None)
+        image, image_rect = load_image('maps/' + str(self.g.level) + '.png', None)
         
         self.map = [x[:] for x in [[0] * image_rect.width] * image_rect.height]
 

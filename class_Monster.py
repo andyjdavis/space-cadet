@@ -11,7 +11,7 @@ class Monster(MySprite):
         self.height = 28
         
         self.image_still, image_rect = load_image('enemies/slime_normal.png')
-        self.image_dead, image_rect = load_image('enemies/slime_dead.png')
+        #self.image_dead, image_rect = load_image('enemies/slime_dead.png')
         self.image_walking, image_rect = load_image('enemies/slime_walk.png')
         
         self.image = None
@@ -23,14 +23,20 @@ class Monster(MySprite):
         draw_pos = (self._pos[0] - self.g.camera_x, self._pos[1]  - self.g.camera_y)
         self.rect = pygame.Rect(draw_pos, (self.width, self.height))
         
+        revert = False
         # have they bumped into anything
         if self.g.world.is_sprite_colliding_with_scenery(self):
-            self._vel[0] *= -1
+            revert = True
         else:
             # have they reached the end of a platform
-            tile_ahead_and_below = self.get_tile_ahead_and_below(5)
+            tile_ahead_and_below = self.get_tile_ahead_and_below()
             if self.g.world.is_tile_clear(tile_ahead_and_below):
-                self._vel[0] *= -1
+                print 'turning'
+                revert = True
+        
+        if revert:
+            self._pos[0] -= self._vel[0] * dt
+            self._vel[0] *= -1
         
         if self._vel[0] != 0:
             self.image = self.image_walking

@@ -1,3 +1,21 @@
+# This is a game called "Space Cadet".
+#
+# Space Cadet is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Space Cadet is distributed in the hope that it will be useful and maybe even fun,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Space Cadet.  If not, see <http://www.gnu.org/licenses/>.
+#
+# copyright  2013 onwards Andrew Davis
+# license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+
 import os, pygame
 from pygame.locals import *
 
@@ -7,6 +25,7 @@ if not pygame.mixer: print 'Warning, sound disabled'
 import math
 import random
 
+from lib import *
 from class_World import World
 from class_Player import Player
 
@@ -27,6 +46,13 @@ class Settings:
         self.text_antialias = 1
         self.text_color = (0, 0, 0)
         #self.text_bg_color = (0, 0, 0)
+        
+        self.mushroom_sound = None
+        self.killed_sound = None
+        
+    def init_sound(self):
+        self.mushroom_sound = load_sound("mushroom.ogg")
+        self.killed_sound = load_sound("zap.ogg")
 settings = Settings()
 
 class Globals:
@@ -49,6 +75,13 @@ pygame.init()
 screen = pygame.display.set_mode((settings.width, settings.height))
 pygame.display.set_caption('My Game')
 #pygame.mouse.set_visible(0)
+
+settings.init_sound()
+
+soundtrack_path = os.path.join('resources', 'music.mp3')
+pygame.mixer.music.load(soundtrack_path)
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play()
 
 sprite_group = pygame.sprite.RenderPlain()
 g.score_font = pygame.font.SysFont("arial", 18)
@@ -211,11 +244,13 @@ def main():
             # Did the player touch a monster?
             hits = pygame.sprite.spritecollide(g.player, g.world.monsters, False)
             for monster in hits:
+                settings.killed_sound.play()
                 reset_level = True
             
             # Did the player get a goal?
             hits = pygame.sprite.spritecollide(g.player, g.world.goals, False)
             for goal in hits:
+                settings.mushroom_sound.play()
                 g.world.goals.remove(goal)
                 if len(g.world.goals) <= 0:
                     g.level += 1

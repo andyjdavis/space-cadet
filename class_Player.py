@@ -31,7 +31,10 @@ class Player(SmartSprite):
             # now check right
             tile_below_player = self.g.world.pos_to_tile((pos[0] + self.width, pos[1] + self.height + 1))
             if self.g.world.is_tile_clear(tile_below_player):
-                return True
+                # check center
+                tile_below_player = self.g.world.pos_to_tile((pos[0] + self.width/2, pos[1] + self.height + 1))
+                if self.g.world.is_tile_clear(tile_below_player):
+                    return True
         return False
 
     def update(self, dt):

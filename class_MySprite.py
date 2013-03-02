@@ -60,6 +60,6 @@ class MySprite(pygame.sprite.Sprite):
             future_x = self._pos[0] + self.width + pixels_ahead
         return self.g.world.pos_to_tile((future_x, self._pos[1] + self.height))
     
-    def get_tile_ahead_and_below(self, pixels_ahead):
+    def get_tile_ahead_and_below(self, pixels_ahead = 1):
         tile = self.get_tile_ahead(pixels_ahead)
         return (tile[0], tile[1] + 1)
