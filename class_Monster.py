@@ -31,7 +31,6 @@ class Monster(MySprite):
             # have they reached the end of a platform
             tile_ahead_and_below = self.get_tile_ahead_and_below()
             if self.g.world.is_tile_clear(tile_ahead_and_below):
-                print 'turning'
                 revert = True
         
         if revert:
