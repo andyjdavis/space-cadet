@@ -57,7 +57,7 @@ settings = Settings()
 
 class Globals:
     def __init__(self):
-        self.level = 1
+        self.level = 9
         self.world = None
         self.player = None
         self.camera_x = 0
