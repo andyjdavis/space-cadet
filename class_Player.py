@@ -21,6 +21,9 @@ class Player(SmartSprite):
                 formatted_i = '0' + str(i)
             image, image_rect = load_image('character/walk/walk00' + formatted_i + '.png')
             self.images.append(image)
+        
+        self.jump_image, image_rect = load_image('character/jump.png');
+        self.standing_image, image_rect = load_image('character/front.png');
             
     def in_the_air(self):
         pos = self.get_pos()
@@ -57,7 +60,9 @@ class Player(SmartSprite):
                 self._vel[0] *= self.settings.friction
         
         # If they're in the air, apply gravity
+        airborne = False
         if self.in_the_air():
+            airborne = True
             gravity_vel_delta = (self.settings.gravity * dt)
             self._vel[1] += gravity_vel_delta
         
@@ -101,11 +106,12 @@ class Player(SmartSprite):
         draw_pos = (pos[0] - self.g.camera_x, pos[1] - self.g.camera_y)
         self.rect = pygame.Rect(draw_pos, (self.width, self.height))
         
-        if self.left_down or self.right_down:
+        if airborne:
+            self.image = self.jump_image
+        elif self.left_down or self.right_down:
             self.image = self.images[self.current_image_index]
         else:
-            self.current_image_index = 0
-            self.image = self.images[self.current_image_index]
+            self.image = self.standing_image
         
     def draw(self, screen):
         screen.blit(self.image, self.rect)
