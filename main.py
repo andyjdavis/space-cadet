@@ -44,7 +44,6 @@ class Settings:
         self.splash_size = (600, 400)
         self.text_antialias = 1
         self.text_color = (0, 0, 0)
-        #self.text_bg_color = (0, 0, 0)
         
         self.mushroom_sound = None
         self.killed_sound = None
@@ -56,7 +55,7 @@ settings = Settings()
 
 class Globals:
     def __init__(self):
-        self.level = 5
+        self.level = 1
         self.world = None
         self.player = None
         self.camera_x = 0
@@ -124,17 +123,18 @@ def key_up(k):
 def display_end_game_splash(screen):
     if not g.splash_surface:
         g.splash_surface = pygame.Surface(settings.splash_size).convert()
+        g.splash_surface.fill(settings.background_color)
 
         font_big = pygame.font.SysFont("arial",24)
         font_small = pygame.font.SysFont("arial", 18)
         
-        text = font_big.render("You now have all the mushrooms in the world!!", settings.text_antialias, settings.text_color, settings.text_bg_color)
+        text = font_big.render("You now have all the mushrooms in the world!!", settings.text_antialias, settings.text_color, settings.background_color)
         g.splash_surface.blit(text, (10, 20))
         
-        text = font_small.render("What you do with them is up to you...", settings.text_antialias, settings.text_color, settings.text_bg_color)
+        text = font_small.render("What you do with them is up to you...", settings.text_antialias, settings.text_color, settings.background_color)
         g.splash_surface.blit(text, (10, 80))
         
-        text = font_small.render("Press space to start over", settings.text_antialias, settings.text_color, settings.text_bg_color)
+        text = font_small.render("Press space to start over", settings.text_antialias, settings.text_color, settings.background_color)
         g.splash_surface.blit(text, (10, 150))
     
     splash_dest_rect = pygame.Rect((settings.width/2) - (settings.splash_size[0]/2), (settings.height/2) - (settings.splash_size[1]/2), settings.splash_size[0], settings.splash_size[1])
@@ -144,13 +144,6 @@ def draw_score(screen):
     message = str(len(g.world.goals)) + " mushrooms left"
     text = g.score_font.render(message, settings.text_antialias, settings.text_color, settings.background_color)
     screen.blit(text, (settings.width - 200, 80))
-
-def draw_fps(screen, dt):
-    pass
-    #if dt > 0:
-    #    message = str(1/dt) + " FPS"
-    #    text = g.score_font.render(message, settings.text_antialias, settings.text_color, settings.background_color)
-    #    screen.blit(text, (settings.width - 200, 160))
 
 def update_camera_offsets(dt):
 
@@ -195,7 +188,6 @@ def main():
     
     bg = pygame.Surface(screen.get_size()).convert()
     bg.fill((255, 255, 255))
-    #bg.blit(nebula_image, screen.get_rect(), nebula_image.get_rect())
         
     clock = pygame.time.Clock()
     
@@ -233,12 +225,8 @@ def main():
         if g.state_end_game:
             display_end_game_splash(screen)
         if g.state_playing:
-            #print dt
-            #print g.mushroom_time
             if g.mushroom_time < 1:
                 dt *= g.mushroom_time
-            #print dt
-            #print
             g.world.update(dt)
             g.player.update(dt)
             
@@ -268,7 +256,6 @@ def main():
                 g.world.draw(screen)
                 g.player.draw(screen)
                 draw_score(screen)
-                draw_fps(screen, dt)
                 
                 update_camera_offsets(dt)
         
