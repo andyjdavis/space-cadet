@@ -39,7 +39,6 @@ class Settings:
         self.player_jump = 1200
         self.gravity = 2200
         self.friction = 0.8
-        self.camera_speed = 10
         self.background_color = (135, 206, 250)
         
         self.splash_size = (600, 400)
@@ -57,7 +56,7 @@ settings = Settings()
 
 class Globals:
     def __init__(self):
-        self.level = 1
+        self.level = 5
         self.world = None
         self.player = None
         self.camera_x = 0
@@ -153,34 +152,38 @@ def draw_fps(screen, dt):
     #    text = g.score_font.render(message, settings.text_antialias, settings.text_color, settings.background_color)
     #    screen.blit(text, (settings.width - 200, 160))
 
-def update_camera_offsets():
+def update_camera_offsets(dt):
+
+    x = g.player.rect[0] + (g.player.width/2)
+    y = g.player.rect[1] + (g.player.height/2)
+
     multiplier = g.player.rect[0]/float(settings.width)
-    if g.player.rect[0] > settings.width * (1/3):
-        delta = multiplier * settings.camera_speed
+    if x > settings.width/2 + 20:
+        delta = multiplier * dt * settings.player_move_acc
         if delta >= 1:
             g.camera_x += delta
             end_world = g.world.width * settings.block_width - settings.width
             if g.camera_x > end_world:
                 g.camera_x = end_world
         
-    elif g.player.rect[0] < settings.width/4:
-        delta = (1.0 - multiplier) * settings.camera_speed
+    elif x < settings.width/2 - 20:
+        delta = (1.0 - multiplier) * dt * settings.player_move_acc
         if delta >= 1:
             g.camera_x -= delta
             if g.camera_x < 0:
                 g.camera_x = 0
     
     multiplier = g.player.rect[1]/float(settings.height)
-    if g.player.rect[1] > settings.height * (2/3):
-        delta = multiplier * settings.camera_speed
+    if y > settings.height/2 + 20:
+        delta = multiplier * dt * settings.player_move_acc
         if delta >= 1:
             g.camera_y += delta
             end_world = g.world.height * settings.block_width - settings.height
             if g.camera_y > end_world:
                 g.camera_y = end_world
     
-    elif g.player.rect[1] < settings.height/3:
-        delta = (1.0 - multiplier) * settings.camera_speed
+    elif y < settings.height/2 - 20:
+        delta = (1.0 - multiplier) * dt * settings.player_move_acc
         if delta >= 1:
             g.camera_y -= delta
             if g.camera_y < 0:
@@ -267,7 +270,7 @@ def main():
                 draw_score(screen)
                 draw_fps(screen, dt)
                 
-                update_camera_offsets()
+                update_camera_offsets(dt)
         
         pygame.display.flip()
                         
