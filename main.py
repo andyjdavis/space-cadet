@@ -73,7 +73,7 @@ g = Globals()
 
 pygame.init()
 screen = pygame.display.set_mode((settings.width, settings.height))
-pygame.display.set_caption('My Game')
+pygame.display.set_caption('Space Cadet')
 #pygame.mouse.set_visible(0)
 
 settings.init_sound()
