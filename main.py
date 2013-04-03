@@ -247,7 +247,8 @@ def main():
                     g.level += 1
                     reset_level = True
                 else:
-                    g.mushroom_time = 0.0
+                    #g.mushroom_time = 0.0
+                    pass
 
             if reset_level:
                 load_world()
